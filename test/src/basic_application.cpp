@@ -44,6 +44,8 @@ int main() {
         Arcranion::GLFW::pollEvents();
     }
     
+    // Cleanup
+    instance.dispose();
 
     Arcranion::GLFW::terminate();
 

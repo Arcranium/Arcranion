@@ -27,7 +27,6 @@ namespace Arcranion::Vulkan {
         VkDebugUtilsMessengerEXT debugMessenger = nullptr;
     public:
         Instance(VkInstance instance, InstanceConfiguration* configuration);
-        ~Instance();
 
         void configureDebugging();
         void disposeDebugging();

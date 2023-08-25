@@ -6,10 +6,6 @@ namespace Arcranion {
         this->configuration = configuration;
     }
 
-    Vulkan::Instance::~Instance() {
-        dispose();
-    }
-
     Vulkan::Instance Vulkan::Instance::create(Vulkan::InstanceConfiguration configuration) {
         auto description = configuration.applicationDescription;
 
@@ -90,10 +86,11 @@ namespace Arcranion {
     }
 
     void Vulkan::Instance::disposeDebugging() {
-        auto destroyMessengerProc =
-                (PFN_vkDestroyDebugUtilsMessengerEXT) vkGetInstanceProcAddr(instance, "vkDestroyDebugUtilsMessengerEXT");
+        auto func = (PFN_vkDestroyDebugUtilsMessengerEXT) vkGetInstanceProcAddr(instance, "vkDestroyDebugUtilsMessengerEXT");
 
-        destroyMessengerProc(instance, debugMessenger, nullptr);
+        if(func != nullptr) {
+            func(instance, debugMessenger, nullptr);
+        }
     }
 
     void Vulkan::Instance::configure() {
