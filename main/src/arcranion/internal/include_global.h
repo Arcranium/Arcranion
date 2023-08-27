@@ -4,6 +4,7 @@
 // Standards
 #include <iostream>
 #include <map>
+#include <set>
 
 // Spdlog
 #include "spdlog/spdlog.h"

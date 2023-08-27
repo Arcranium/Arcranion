@@ -2,24 +2,28 @@
 
 namespace Arcranion {
     Window::Window(GLFWwindow* handle) {
-        this->handle = handle;
+        this->_handle = handle;
     }
 
     Window::~Window() {
         destroy();
     }
 
+    GLFWwindow* Window::handle() {
+        return this->_handle;
+    }
+
     bool Window::shouldClose() {
-        return glfwWindowShouldClose(handle);
+        return glfwWindowShouldClose(_handle);
     }
 
     void Window::shouldClose(bool value) {
-        glfwSetWindowShouldClose(handle, value);
+        glfwSetWindowShouldClose(_handle, value);
     }
 
     Window::Size Window::size() {
         int width, height;
-        glfwGetWindowSize(handle, &width, &height);
+        glfwGetWindowSize(_handle, &width, &height);
 
         return Window::Size {
             .width = width,
@@ -29,7 +33,7 @@ namespace Arcranion {
 
     Window::FrameSize Window::frameSize() {
         int left, top, right, bottom;
-        glfwGetWindowFrameSize(handle, &left, &top, &right, &bottom);
+        glfwGetWindowFrameSize(_handle, &left, &top, &right, &bottom);
 
         return Window::FrameSize {
             .left = left,
@@ -41,7 +45,7 @@ namespace Arcranion {
 
     Window::Size Window::framebufferSize() {
         int width, height;
-        glfwGetFramebufferSize(handle, &width, &height);
+        glfwGetFramebufferSize(_handle, &width, &height);
 
         return Window::Size {
             .width = width,
@@ -51,7 +55,7 @@ namespace Arcranion {
 
     Window::Scale Window::contentScale() {
         float x, y;
-        glfwGetWindowContentScale(handle, &x, &y);
+        glfwGetWindowContentScale(_handle, &x, &y);
 
         return Window::Scale {
             .x = x,
@@ -60,20 +64,20 @@ namespace Arcranion {
     }
 
     void Window::sizeLimits(Window::SizeLimits limits) {
-        glfwSetWindowSizeLimits(handle, limits.minWidth, limits.minHeight, limits.maxWidth, limits.maxHeight);
+        glfwSetWindowSizeLimits(_handle, limits.minWidth, limits.minHeight, limits.maxWidth, limits.maxHeight);
     };
 
     void Window::aspectRatio(Window::AspectRatio ratio) {
-        glfwSetWindowAspectRatio(handle, ratio.numerator, ratio.denominator);
+        glfwSetWindowAspectRatio(_handle, ratio.numerator, ratio.denominator);
     }
 
     void Window::position(Window::Coordinates coordinates) {
-        glfwSetWindowPos(handle, coordinates.x, coordinates.y);
+        glfwSetWindowPos(_handle, coordinates.x, coordinates.y);
     }
 
     Window::Coordinates Window::position() {
         int x, y;
-        glfwGetWindowPos(handle, &x, &y);
+        glfwGetWindowPos(_handle, &x, &y);
 
         return Window::Coordinates {
             .x = x,
@@ -82,131 +86,131 @@ namespace Arcranion {
     }
 
     void Window::title(std::string title) {
-        glfwSetWindowTitle(handle, title.c_str());
+        glfwSetWindowTitle(_handle, title.c_str());
     }
 
     void Window::icon(std::vector<GLFWimage> images) {
-        glfwSetWindowIcon(handle, images.size(), images.data());
+        glfwSetWindowIcon(_handle, images.size(), images.data());
     }
 
     void Window::icon() {
-        glfwSetWindowIcon(handle, 0, 0);
+        glfwSetWindowIcon(_handle, 0, 0);
     }
 
     Monitor Window::monitor() {
-        return Monitor(glfwGetWindowMonitor(handle));
+        return Monitor(glfwGetWindowMonitor(_handle));
     }
 
     void Window::monitor(Monitor monitor) {
         const auto mode = monitor.videoMode();
 
-        glfwSetWindowMonitor(handle, monitor.handle(), 0, 0, mode->width, mode->height, mode->refreshRate);
+        glfwSetWindowMonitor(_handle, monitor.handle(), 0, 0, mode->width, mode->height, mode->refreshRate);
     }
 
     void Window::monitor(Monitor monitor, Window::Size size, int refreshRate) {
-        glfwSetWindowMonitor(handle, monitor.handle(), 0, 0, size.width, size.height, refreshRate);
+        glfwSetWindowMonitor(_handle, monitor.handle(), 0, 0, size.width, size.height, refreshRate);
     }
 
     void Window::windowed(Window::Coordinates coordinates, Window::Size size) {
-        glfwSetWindowMonitor(handle, 0, coordinates.x, coordinates.y, size.width, size.height, 0);
+        glfwSetWindowMonitor(_handle, 0, coordinates.x, coordinates.y, size.width, size.height, 0);
     }
 
     void Window::iconify() {
-        glfwIconifyWindow(handle);
+        glfwIconifyWindow(_handle);
     }
 
     void Window::maximize() {
-        glfwMaximizeWindow(handle);
+        glfwMaximizeWindow(_handle);
     }
 
     bool Window::iconified() {
-        return glfwGetWindowAttrib(handle, GLFW_ICONIFIED);
+        return glfwGetWindowAttrib(_handle, GLFW_ICONIFIED);
     }
 
     bool Window::maximized() {
-        return glfwGetWindowAttrib(handle, GLFW_MAXIMIZED);
+        return glfwGetWindowAttrib(_handle, GLFW_MAXIMIZED);
     }
 
     void Window::restore() {
-        glfwRestoreWindow(handle);
+        glfwRestoreWindow(_handle);
     }
 
     void Window::visible(bool value) {
         if(value) {
-            glfwShowWindow(handle);
+            glfwShowWindow(_handle);
         } else {
-            glfwHideWindow(handle);
+            glfwHideWindow(_handle);
         }
     }
 
     bool Window::visible() {
-        return glfwGetWindowAttrib(handle, GLFW_VISIBLE);
+        return glfwGetWindowAttrib(_handle, GLFW_VISIBLE);
     }
 
     void Window::focus() {
-        glfwFocusWindow(handle);
+        glfwFocusWindow(_handle);
     }
 
     bool Window::focused() {
-        return glfwGetWindowAttrib(handle, GLFW_FOCUSED);
+        return glfwGetWindowAttrib(_handle, GLFW_FOCUSED);
     }
 
     void Window::requestAttention() {
-        glfwRequestWindowAttention(handle);
+        glfwRequestWindowAttention(_handle);
     }
 
     void Window::opacity(float opacity) {
-        glfwSetWindowOpacity(handle, opacity);
+        glfwSetWindowOpacity(_handle, opacity);
     }
 
     float Window::opacity() {
-        return glfwGetWindowOpacity(handle);
+        return glfwGetWindowOpacity(_handle);
     }
 
     // Callbacks
     void Window::closeCallback(GLFWwindowclosefun callback) {
-        glfwSetWindowCloseCallback(handle, callback);
+        glfwSetWindowCloseCallback(_handle, callback);
     }
 
     void Window::sizeCallback(GLFWwindowsizefun callback) {
-        glfwSetWindowSizeCallback(handle, callback);
+        glfwSetWindowSizeCallback(_handle, callback);
     }
 
     void Window::framebufferSizeCallback(GLFWframebuffersizefun callback) {
-        glfwSetFramebufferSizeCallback(handle, callback);
+        glfwSetFramebufferSizeCallback(_handle, callback);
     }
 
     void Window::contentScaleCallback(GLFWwindowcontentscalefun callback) {
-        glfwSetWindowContentScaleCallback(handle, callback);
+        glfwSetWindowContentScaleCallback(_handle, callback);
     }
 
     void Window::positionCallback(GLFWwindowposfun callback) {
-        glfwSetWindowPosCallback(handle, callback);
+        glfwSetWindowPosCallback(_handle, callback);
     }
 
     void Window::iconifyCallback(GLFWwindowiconifyfun callback) {
-        glfwSetWindowIconifyCallback(handle, callback);
+        glfwSetWindowIconifyCallback(_handle, callback);
     }
 
     void Window::maximizeCallback(GLFWwindowmaximizefun callback) {
-        glfwSetWindowMaximizeCallback(handle, callback);
+        glfwSetWindowMaximizeCallback(_handle, callback);
     }
 
     void Window::focusCallback(GLFWwindowfocusfun callback) {
-        glfwSetWindowFocusCallback(handle, callback);
+        glfwSetWindowFocusCallback(_handle, callback);
     }
 
     void Window::refreshCallback(GLFWwindowrefreshfun callback) {
-        glfwSetWindowRefreshCallback(handle, callback);
+        glfwSetWindowRefreshCallback(_handle, callback);
     }
 
     // Functions
     void Window::swapBuffers() {
-        glfwSwapBuffers(handle);
+        glfwSwapBuffers(_handle);
     }
 
     void Window::destroy() {
-        glfwDestroyWindow(handle);
+        glfwDestroyWindow(_handle);
     }
 
     Window Window::create(CreateOptions options) {

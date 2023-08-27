@@ -61,6 +61,10 @@ namespace Arcranion {
         return {vkInstance, &configuration};
     }
 
+    VkInstance Vulkan::Instance::handle() {
+        return this->instance;
+    }
+
     void Vulkan::Instance::configureDebugging() {
         if (!configuration->useValidationLayer) return;
         if (!Debugging::isValidationLayerSupported()) return;

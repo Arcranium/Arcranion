@@ -16,11 +16,13 @@ namespace Arcranion {
         struct CreateOptions;
 
     private:
-        GLFWwindow* handle;
+        GLFWwindow* _handle;
 
     public:
         Window(GLFWwindow* handle);
         ~Window();
+
+        GLFWwindow* handle();
 
         bool shouldClose();
         void shouldClose(bool value);
