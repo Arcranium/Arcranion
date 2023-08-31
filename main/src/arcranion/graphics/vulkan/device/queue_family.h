@@ -10,6 +10,7 @@ namespace Arcranion::Vulkan::Device {
         std::optional<unsigned int> presentFamily;
 
         bool isComplete();
+        unsigned int* array();
     };
 }
 

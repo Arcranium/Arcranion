@@ -3,9 +3,8 @@
 
 #include "arcranion/internal/include_global.h"
 
-namespace Arcranion
-{
-    class GLFW {
+namespace Arcranion {
+   class GLFW {
     private:
         static logger_t logger;
 

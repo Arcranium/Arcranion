@@ -3,6 +3,8 @@
 #include "arcranion/graphics/vulkan/instance.h"
 #include "arcranion/application/description.h"
 #include "arcranion/graphics/vulkan/device/queue_family.h"
+#include "arcranion/graphics/vulkan/device/physical.h"
+#include "arcranion/graphics/vulkan/device/logical.h"
 #include "arcranion/graphics/vulkan/device/swap_chain.h"
 
 VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
@@ -45,19 +47,33 @@ int main() {
 
     logger->info("Reached M3");
 
-    Arcranion::Vulkan::Device::Physical* device;
+    Arcranion::Vulkan::Device::Physical* physicalDevice;
     try {
-        auto d = Arcranion::Vulkan::Device::Physical::bestDevice(instance, surface);
-        device = &d;
+        auto d = Arcranion::Vulkan::Device::Physical::bestDevice(&instance, &surface);
+        physicalDevice = &d;
     } catch(std::runtime_error error) {
         logger->critical("Could not pick best device: {}", error.what());
+        return -1;
     }
     logger->info(
         "Found device: {} [{}] (Type {})",
-        device->properties().deviceName,
-        device->properties().deviceID,
-        Arcranion::Vulkan::Device::Physical::deviceTypeAsString(device->properties())
+        physicalDevice->properties().deviceName,
+        physicalDevice->properties().deviceID,
+        Arcranion::Vulkan::Device::Physical::deviceTypeAsString(physicalDevice->properties())
     );
+
+    Arcranion::Vulkan::Device::Logical* device;
+    try {
+        auto d = Arcranion::Vulkan::Device::Logical(physicalDevice);
+        device = &d;
+    } catch(std::runtime_error error) {
+        logger->critical("Failed to create logical devic: {}", error.what());
+    }
+
+    auto swapchainInfo = physicalDevice->swapChainSupport(&surface);
+
+    auto swapchain = Arcranion::Vulkan::Device::Swapchain(swapchainInfo);
+    swapchain.create(device, &window, &surface);
 
     while (!window.shouldClose())
     {
@@ -65,6 +81,8 @@ int main() {
     }
     
     // Cleanup
+    swapchain.destroy();
+    device->destroy();
     surface.destroy();
     instance.dispose();
 

@@ -21,7 +21,7 @@ namespace Arcranion::Vulkan::Device {
         return features;
     }
 
-    Arcranion::Vulkan::Device::QueueFamilyIndices Physical::queueFamilies(Arcranion::Vulkan::Surface surface) {
+    Arcranion::Vulkan::Device::QueueFamilyIndices Physical::queueFamilies(Arcranion::Vulkan::Surface* surface) {
         Arcranion::Vulkan::Device::QueueFamilyIndices indices;
         std::optional<unsigned int> queueFamily;
 
@@ -38,7 +38,7 @@ namespace Arcranion::Vulkan::Device {
             }
 
             VkBool32 presentSupport = false;
-            vkGetPhysicalDeviceSurfaceSupportKHR(this->_handle, i, surface.handle(), &presentSupport);
+            vkGetPhysicalDeviceSurfaceSupportKHR(this->_handle, i, surface->handle(), &presentSupport);
             if(presentSupport) {
                 indices.presentFamily = i;
             }
@@ -70,7 +70,7 @@ namespace Arcranion::Vulkan::Device {
         return score;
     }
 
-    bool Physical::suitable(Arcranion::Vulkan::Surface surface) {
+    bool Physical::suitable(Arcranion::Vulkan::Surface* surface) {
         auto indices = this->queueFamilies(surface);
 
         auto deviceExtensionSupported = this->deviceExtensionSupported();
@@ -80,10 +80,6 @@ namespace Arcranion::Vulkan::Device {
             auto swapChainSupport = this->swapChainSupport(surface);
             swapChainAdequate = !swapChainSupport.formats.empty() && !swapChainSupport.presentModes.empty();
         }
-
-        std::cout << std::boolalpha << indices.isComplete() << std::endl;
-        std::cout << std::boolalpha << deviceExtensionSupported << std::endl;
-        std::cout << std::boolalpha << swapChainAdequate << std::endl;
 
         return indices.isComplete() && deviceExtensionSupported && swapChainAdequate;
     }
@@ -105,25 +101,25 @@ namespace Arcranion::Vulkan::Device {
         return requiredExtensions.empty();
     }
 
-    Arcranion::Vulkan::Device::SwapChainSupportDetails Physical::swapChainSupport(Arcranion::Vulkan::Surface surface) {
-        Arcranion::Vulkan::Device::SwapChainSupportDetails details;
+    Arcranion::Vulkan::Device::SwapchainInformation Physical::swapChainSupport(Arcranion::Vulkan::Surface* surface) {
+        Arcranion::Vulkan::Device::SwapchainInformation details;
 
-        vkGetPhysicalDeviceSurfaceCapabilitiesKHR(this->_handle, surface.handle(), &details.capabilities);
+        vkGetPhysicalDeviceSurfaceCapabilitiesKHR(this->_handle, surface->handle(), &details.capabilities);
 
         unsigned int formatCount;
-        vkGetPhysicalDeviceSurfaceFormatsKHR(this->_handle, surface.handle(), &formatCount, nullptr);
+        vkGetPhysicalDeviceSurfaceFormatsKHR(this->_handle, surface->handle(), &formatCount, nullptr);
 
         if(formatCount != 0) {
             details.formats.resize(formatCount);
-            vkGetPhysicalDeviceSurfaceFormatsKHR(this->_handle, surface.handle(), &formatCount, details.formats.data());
+            vkGetPhysicalDeviceSurfaceFormatsKHR(this->_handle, surface->handle(), &formatCount, details.formats.data());
         }
 
         unsigned int presentModeCount;
-        vkGetPhysicalDeviceSurfacePresentModesKHR(this->_handle, surface.handle(), &presentModeCount, nullptr);
+        vkGetPhysicalDeviceSurfacePresentModesKHR(this->_handle, surface->handle(), &presentModeCount, nullptr);
 
         if(presentModeCount != 0) {
             details.presentModes.resize(presentModeCount);
-            vkGetPhysicalDeviceSurfacePresentModesKHR(this->_handle, surface.handle(), &presentModeCount, details.presentModes.data());
+            vkGetPhysicalDeviceSurfacePresentModesKHR(this->_handle, surface->handle(), &presentModeCount, details.presentModes.data());
         }
 
         return details;
@@ -150,8 +146,8 @@ namespace Arcranion::Vulkan::Device {
         }
     }
 
-    Arcranion::Vulkan::Device::Physical Physical::bestDevice(Arcranion::Vulkan::Instance instance, Arcranion::Vulkan::Surface surface) {
-        auto devices = instance.enumeratePhysicalDevices();
+    Arcranion::Vulkan::Device::Physical Physical::bestDevice(Arcranion::Vulkan::Instance* instance, Arcranion::Vulkan::Surface* surface) {
+        auto devices = instance->enumeratePhysicalDevices();
 
 
         std::multimap<int, Arcranion::Vulkan::Device::Physical> candidates;

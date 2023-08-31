@@ -3,8 +3,7 @@
 
 #include "arcranion/internal/include_global.h"
 
-namespace Arcranion
-{
+namespace Arcranion {
     struct Version {
     public:
         int major;

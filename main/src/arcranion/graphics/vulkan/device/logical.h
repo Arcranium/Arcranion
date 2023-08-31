@@ -1,20 +1,26 @@
 #ifndef ARCRANION_LOGICAL_H
 #define ARCRANION_LOGICAL_H
 
+namespace Arcranion::Vulkan::Device {
+    class Logical;
+}
+
 #include "arcranion/graphics/vulkan/device/physical.h"
 
 namespace Arcranion::Vulkan::Device {
     class Logical {
     private:
-        VkDevice handle;
+        VkDevice _handle;
         VkQueue graphicsQueue;
         VkQueue presentQueue;
-
-        Arcranion::Vulkan::Device::Physical physicalDevice;
     public:
-        Logical(const Arcranion::Vulkan::Device::Physical& device);
+        Arcranion::Vulkan::Device::Physical* physicalDevice;
 
-        void create(Arcranion::Vulkan::Instance instance);
+        Logical(Arcranion::Vulkan::Device::Physical* device);
+
+        VkDevice handle();
+
+        void create(Arcranion::Vulkan::Instance* instance, Arcranion::Vulkan::Surface* surface);
         void destroy();
     };
 }

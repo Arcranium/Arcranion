@@ -23,15 +23,15 @@ namespace Arcranion::Vulkan::Device {
         VkPhysicalDeviceProperties properties();
         VkPhysicalDeviceFeatures features();
 
-        Arcranion::Vulkan::Device::QueueFamilyIndices queueFamilies(Arcranion::Vulkan::Surface surface);
+        Arcranion::Vulkan::Device::QueueFamilyIndices queueFamilies(Arcranion::Vulkan::Surface* surface);
 
         int rating();
-        bool suitable(Arcranion::Vulkan::Surface surface);
+        bool suitable(Arcranion::Vulkan::Surface* surface);
         bool deviceExtensionSupported();
-        Arcranion::Vulkan::Device::SwapChainSupportDetails swapChainSupport(Arcranion::Vulkan::Surface surface);
+        Arcranion::Vulkan::Device::SwapchainInformation swapChainSupport(Arcranion::Vulkan::Surface* surface);
         
         static std::string deviceTypeAsString(VkPhysicalDeviceProperties properties);
-        static Arcranion::Vulkan::Device::Physical bestDevice(Arcranion::Vulkan::Instance instance, Arcranion::Vulkan::Surface surface);
+        static Arcranion::Vulkan::Device::Physical bestDevice(Arcranion::Vulkan::Instance* instance, Arcranion::Vulkan::Surface* surface);
     };
 }
 
