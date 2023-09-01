@@ -48,15 +48,19 @@ namespace Arcranion::Vulkan::Device {
         }
     }
 
+    Swapchain::Swapchain(SwapchainInformation information) {
+        this->information = information;
+    }
+
     VkSwapchainKHR Swapchain::handle() {
         return this->_handle;
     }
 
     void Swapchain::updateImages() {
         unsigned int imageCount;
-        vkGetSwapchainImagesKHR(this->device.handle(), this->_handle, &imageCount, nullptr);
+        vkGetSwapchainImagesKHR(this->device->handle(), this->_handle, &imageCount, nullptr);
         images.resize(imageCount);
-        vkGetSwapchainImagesKHR(this->device.handle(), this->_handle, &imageCount, images.data());
+        vkGetSwapchainImagesKHR(this->device->handle(), this->_handle, &imageCount, images.data());
     }
 
     void Swapchain::create(
@@ -64,13 +68,15 @@ namespace Arcranion::Vulkan::Device {
         Arcranion::Window* window,
         Arcranion::Vulkan::Surface* surface
     ) {
+        this->device = device;
+
         auto surfaceFormat = this->information.chooseSurfaceFormat();
         auto presentMode = this->information.choosePresentMode();
         auto extent = this->information.chooseExtent(window);
 
         unsigned int imageCount = this->information.capabilities.minImageCount + 1;
 
-        if(this->information.capabilities.maxImageCount > 0 && imageCount < this->information.capabilities.maxImageCount) {
+        if(this->information.capabilities.maxImageCount > 0 && imageCount > this->information.capabilities.maxImageCount) {
             imageCount = this->information.capabilities.maxImageCount;
         }
 
@@ -109,12 +115,47 @@ namespace Arcranion::Vulkan::Device {
         this->imageFormat = surfaceFormat.format;
         this->extent = extent;
 
-        if(vkCreateSwapchainKHR(device->handle(), &createInfo, nullptr, &this->_handle)) {
+        if(vkCreateSwapchainKHR(this->device->handle(), &createInfo, nullptr, &this->_handle) != VK_SUCCESS) {
             throw std::runtime_error("Failed to create swap chain");
         }
     }
 
     void Swapchain::destroy() {
-        vkDestroySwapchainKHR(this->device.handle(), this->_handle, nullptr);
+        this->destroyImageViews();
+        
+        vkDestroySwapchainKHR(this->device->handle(), this->_handle, nullptr);
+    }
+
+    void Swapchain::createImageViews() {
+        this->imageViews.resize(this->images.size());
+
+        for (size_t i = 0; i < this->images.size(); i++) {
+            VkImageViewCreateInfo createInfo{};
+            createInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+            createInfo.image = this->images[i];
+            createInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+            createInfo.format = this->imageFormat;
+
+            createInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
+            createInfo.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
+            createInfo.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
+            createInfo.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
+
+            createInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+            createInfo.subresourceRange.baseMipLevel = 0;
+            createInfo.subresourceRange.levelCount = 1;
+            createInfo.subresourceRange.baseArrayLayer = 0;
+            createInfo.subresourceRange.layerCount = 1;
+
+            if(vkCreateImageView(this->device->handle(), &createInfo, nullptr, &this->imageViews[i]) != VK_SUCCESS) {
+                throw std::runtime_error("Failed to create image view");
+            }
+        }
+    }
+
+    void Swapchain::destroyImageViews() {
+        for (auto imageView : this->imageViews) {
+            vkDestroyImageView(this->device->handle(), imageView, nullptr);
+        }
     }
 }

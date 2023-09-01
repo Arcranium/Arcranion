@@ -2,10 +2,10 @@
 
 import os;
 import re;
-from typing import Dict, List, Tuple, Literal, Iterator
+from typing import Dict, List, Tuple, Literal, Iterator, Any
 
 def analyzeFile(headerData: str):
-    dictionary: Dict[str, str] = dict()
+    dictionary: Dict[str, Any] = dict()
     stack: List[Tuple[str, str]] = list()
 
     def processBrackets(line: str):
@@ -16,6 +16,15 @@ def analyzeFile(headerData: str):
 
         for _ in range(line.count('}')):
             stack.pop()
+
+    def getDictionary(domain: List[str]) -> Dict:
+        current = dictionary
+        for s in domain:
+            if not s in current:
+                current[s] = dict()
+            current = current[s]
+
+        return current
 
     def analyzeDeclarationType(identifier: str, line: str):
         line = line.strip()
@@ -29,21 +38,30 @@ def analyzeFile(headerData: str):
 
         if line.startswith(identifier):
             line = line.removeprefix(identifier)
+
             if line.find(';') != -1:
                 # A forward declaration, add to dictionary only.
                 line = line.replace(';', '')
                 declName = line.strip()
+
+                domain = list(name for (name, _) in stack)
+                domain.append(declName)
+
                 if not declName:
                     return False
-                dictionary[fullname(declName)] = identifier
+                getDictionary(domain)["$$__type__$$"] = identifier
                 return True
             elif line.find('{') != -1:
                 # Normal declaration, add to stack.
                 line = line.replace('{', '')
                 declName = line.strip()
+                            
+                domain = list(name for (name, _) in stack)
+                domain.append(declName)
+
                 if not declName:
                     return False
-                dictionary[fullname(declName)] = identifier
+                getDictionary(domain)["$$__type__$$"] = identifier
                 stack.append((declName, identifier))
                 return True
         
@@ -72,5 +90,4 @@ def analyzeDirectory(files: Iterator[Tuple[str, list[str], list[str]]]):
                 with open(filePath, 'r') as file:
                     data = file.read()
                     dictionary = dictionary | analyzeFile(data)
-
     return dictionary

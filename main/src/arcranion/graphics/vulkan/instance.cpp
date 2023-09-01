@@ -102,7 +102,7 @@ namespace Arcranion {
     }
 
     void Vulkan::Instance::dispose() {
-        disposeDebugging();
+        vkDestroyInstance(this->instance, nullptr);
     }
 
     std::vector<Vulkan::Device::Physical> Vulkan::Instance::enumeratePhysicalDevices() {

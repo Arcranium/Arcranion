@@ -3,6 +3,10 @@
 namespace Arcranion::Vulkan::Device {
     Logical::Logical(Arcranion::Vulkan::Device::Physical* device): physicalDevice(device) {}
 
+    VkDevice Logical::handle() {
+        return this->_handle;
+    }
+
     void Logical::create(Arcranion::Vulkan::Instance* instance, Arcranion::Vulkan::Surface* surface) {
         // Queue create informations
         auto indices = this->physicalDevice->queueFamilies(surface);

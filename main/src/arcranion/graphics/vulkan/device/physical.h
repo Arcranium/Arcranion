@@ -3,13 +3,16 @@
 
 namespace Arcranion::Vulkan::Device {
     class Physical;
+    class SwapchainInformation;
+    class Swapchain;
 }
 
 #include "arcranion/internal/include_global.h"
 #include "arcranion/graphics/vulkan/instance.h"
 #include "arcranion/graphics/vulkan/device/queue_family.h"
-#include "arcranion/graphics/vulkan/device/swap_chain.h"
 #include "arcranion/graphics/vulkan/surface.h"
+#include "arcranion/graphics/vulkan/device/logical.h"
+#include "arcranion/graphics/vulkan/device/swap_chain.h"
 
 namespace Arcranion::Vulkan::Device {
     class Physical {

@@ -13,13 +13,15 @@ VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
     const VkDebugUtilsMessengerCallbackDataEXT*      pCallbackData,
     void*                                            pUserData
 ) {
-    std::cout << "Debug: " << pCallbackData->pMessage;
+    auto logger = spdlog::get("ValidationLayer");
+    logger->error("{}", pCallbackData->pMessage);
 
     return VK_FALSE;
 }
 
 int main() {
     logger_t logger = spdlog::stdout_color_mt("BasicApplication");
+    spdlog::stdout_color_mt("ValidationLayer");
 
     Arcranion::GLFW::initialize();
 
@@ -38,7 +40,9 @@ int main() {
     logger->info("Reached M1");
 
     auto instance = Arcranion::Vulkan::Instance::create({
-        .applicationDescription = applicationDescription
+        .useValidationLayer = true,
+        .applicationDescription = applicationDescription,
+        .debugMessengerCallback = debugCallback,
     });
     logger->info("Reached M2");
 
@@ -70,10 +74,23 @@ int main() {
         logger->critical("Failed to create logical devic: {}", error.what());
     }
 
+    device->create(&instance, &surface);
+
     auto swapchainInfo = physicalDevice->swapChainSupport(&surface);
+    
+    logger->info("Reached M4");
 
     auto swapchain = Arcranion::Vulkan::Device::Swapchain(swapchainInfo);
-    swapchain.create(device, &window, &surface);
+    logger->info("Reached M5");
+    try {
+        swapchain.create(device, &window, &surface);
+        swapchain.updateImages();
+        swapchain.createImageViews();
+
+        logger->info("Created Swapchain!");
+    } catch(std::runtime_error error) {
+        logger->critical("Failed to create swapchain: {}", error.what());
+    }
 
     while (!window.shouldClose())
     {
@@ -81,10 +98,16 @@ int main() {
     }
     
     // Cleanup
-    swapchain.destroy();
-    device->destroy();
-    surface.destroy();
-    instance.dispose();
+    try {
+        swapchain.destroy();
+        device->destroy();
+        instance.disposeDebugging();
+        surface.destroy();
+        instance.dispose();
+        window.destroy();
+    } catch(std::exception e) {
+        logger->critical("Failed to cleanup: {}", e.what());
+    }
 
     Arcranion::GLFW::terminate();
 

@@ -3,8 +3,9 @@
         {
             "name": "Win32",
             "includePath": [
-                "c:/Users/devla/Projects/Arcranion/includes",
-                "${workspaceFolder}/main/src"
+                "D:/Projects/Arcranion/includes",
+                "${workspaceFolder}/main/src",
+                "${workspaceFolder}/includes"
             ],
             "defines": [
                 "_DEBUG",

@@ -4,19 +4,16 @@
 namespace Arcranion::Vulkan::Device {
     class SwapchainInformation;
     class Swapchain;
-
     class Logical;
 }
 
 #include "arcranion/internal/include_global.h"
 #include "arcranion/window/window.h"
 #include "arcranion/graphics/vulkan/surface.h"
-#include "arcranion/graphics/vulkan/device/physical.h"
 #include "arcranion/graphics/vulkan/device/logical.h"
 
 namespace Arcranion::Vulkan::Device {
-    class SwapchainInformation
-    {
+    class SwapchainInformation {
     public:
         VkSurfaceCapabilitiesKHR capabilities;
         std::vector<VkSurfaceFormatKHR> formats;
@@ -29,7 +26,7 @@ namespace Arcranion::Vulkan::Device {
 
     class Swapchain {
     private:
-        Arcranion::Vulkan::Device::Logical device;
+        Arcranion::Vulkan::Device::Logical* device;
 
         VkSwapchainKHR _handle;
         
@@ -37,6 +34,8 @@ namespace Arcranion::Vulkan::Device {
 
         VkFormat imageFormat;
         VkExtent2D extent;
+
+        std::vector<VkImageView> imageViews;
     public:
         SwapchainInformation information;
 
@@ -52,6 +51,9 @@ namespace Arcranion::Vulkan::Device {
             Arcranion::Vulkan::Surface* surface
         );
         void destroy();
+
+        void createImageViews();
+        void destroyImageViews();
     };
     
 }
