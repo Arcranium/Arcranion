@@ -19,6 +19,7 @@ namespace Arcranion::Vulkan::Device {
         Logical(Arcranion::Vulkan::Device::Physical* device);
 
         VkDevice handle();
+        Logical* pointer();
 
         void create(Arcranion::Vulkan::Instance* instance, Arcranion::Vulkan::Surface* surface);
         void destroy();

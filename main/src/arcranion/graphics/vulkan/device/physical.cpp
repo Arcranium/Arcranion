@@ -9,6 +9,10 @@ namespace Arcranion::Vulkan::Device {
         return this->_handle;
     }
 
+    Physical* Physical::pointer() {
+        return this;
+    }
+
     VkPhysicalDeviceProperties Physical::properties() {
         VkPhysicalDeviceProperties properties;
         vkGetPhysicalDeviceProperties(this->_handle, &properties);

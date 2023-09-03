@@ -1,6 +1,6 @@
 param(
     [Parameter(Mandatory=$true)]
-    [ValidateSet("Build", "Run", "Clean")] 
+    [ValidateSet("Build", "Run", "Clean", "CompileTestShaders")] 
     $Option
 )
 
@@ -32,6 +32,10 @@ function Clean {
     New-Item -ItemType Directory -Force -Path $build > $null
 }
 
+function CompileTestShaders {
+    python .\scripts\shader.py -c 'C:\VulkanSDK\1.3.250.1\Bin\glslc.exe' -s .\test\shaders\source\ -o .\test\shaders\compiled\
+}
+
 Write-Host "--------------------------" -ForegroundColor Green
 Write-Host "Running Task [$Option]" -ForegroundColor Green
 Write-Host "--------------------------" -ForegroundColor Green
@@ -40,6 +44,7 @@ switch ($Option) {
     Build { Build }
     Run { Run }
     Clean { Clean }
+    CompileTestShaders { CompileTestShaders }
 }
 
 Write-Host "--------------------------" -ForegroundColor Green

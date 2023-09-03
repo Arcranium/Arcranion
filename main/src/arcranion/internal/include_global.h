@@ -5,6 +5,7 @@
 #include <iostream>
 #include <map>
 #include <set>
+#include <fstream>
 
 // Spdlog
 #include "spdlog/spdlog.h"

@@ -112,8 +112,8 @@ namespace Arcranion::Vulkan::Device {
         createInfo.oldSwapchain = VK_NULL_HANDLE;
 
         // Set variables
-        this->imageFormat = surfaceFormat.format;
-        this->extent = extent;
+        this->_imageFormat = surfaceFormat.format;
+        this->_extent = extent;
 
         if(vkCreateSwapchainKHR(this->device->handle(), &createInfo, nullptr, &this->_handle) != VK_SUCCESS) {
             throw std::runtime_error("Failed to create swap chain");
@@ -134,7 +134,7 @@ namespace Arcranion::Vulkan::Device {
             createInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
             createInfo.image = this->images[i];
             createInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-            createInfo.format = this->imageFormat;
+            createInfo.format = this->_imageFormat;
 
             createInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
             createInfo.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
@@ -157,5 +157,13 @@ namespace Arcranion::Vulkan::Device {
         for (auto imageView : this->imageViews) {
             vkDestroyImageView(this->device->handle(), imageView, nullptr);
         }
+    }
+
+    VkFormat Swapchain::imageFormat() {
+        return this->_imageFormat;
+    }
+
+    VkExtent2D Swapchain::extent() {
+        return this->_extent;
     }
 }

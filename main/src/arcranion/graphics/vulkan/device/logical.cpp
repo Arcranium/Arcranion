@@ -7,6 +7,10 @@ namespace Arcranion::Vulkan::Device {
         return this->_handle;
     }
 
+    Logical* Logical::pointer() {
+        return this;
+    }
+
     void Logical::create(Arcranion::Vulkan::Instance* instance, Arcranion::Vulkan::Surface* surface) {
         // Queue create informations
         auto indices = this->physicalDevice->queueFamilies(surface);

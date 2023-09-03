@@ -22,6 +22,7 @@ namespace Arcranion::Vulkan::Device {
         Physical(VkPhysicalDevice handle);
 
         VkPhysicalDevice handle();
+        Physical* pointer();
 
         VkPhysicalDeviceProperties properties();
         VkPhysicalDeviceFeatures features();

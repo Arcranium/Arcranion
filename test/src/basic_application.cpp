@@ -6,6 +6,10 @@
 #include "arcranion/graphics/vulkan/device/physical.h"
 #include "arcranion/graphics/vulkan/device/logical.h"
 #include "arcranion/graphics/vulkan/device/swap_chain.h"
+#include "arcranion/graphics/vulkan/shader/shader_module.h"
+#include "arcranion/graphics/vulkan/render_pass.h"
+#include "arcranion/graphics/vulkan/pipeline.h"
+#include "arcranion/util/file.h"
 
 VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
     VkDebugUtilsMessageSeverityFlagBitsEXT           messageSeverity,
@@ -14,14 +18,14 @@ VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
     void*                                            pUserData
 ) {
     auto logger = spdlog::get("ValidationLayer");
-    logger->error("{}", pCallbackData->pMessage);
+    logger->trace("{}", pCallbackData->pMessage);
 
     return VK_FALSE;
 }
 
 int main() {
     logger_t logger = spdlog::stdout_color_mt("BasicApplication");
-    spdlog::stdout_color_mt("ValidationLayer");
+    spdlog::stdout_color_mt("ValidationLayer")->set_level(spdlog::level::trace);
 
     Arcranion::GLFW::initialize();
 
@@ -37,28 +41,16 @@ int main() {
 
     logger->info("Checking validation layer support: {}", Arcranion::Vulkan::Debugging::isValidationLayerSupported());
 
-    logger->info("Reached M1");
-
     auto instance = Arcranion::Vulkan::Instance::create({
         .useValidationLayer = true,
         .applicationDescription = applicationDescription,
         .debugMessengerCallback = debugCallback,
     });
-    logger->info("Reached M2");
 
     auto surface = Arcranion::Vulkan::Surface(&instance, &window);
     surface.create();
 
-    logger->info("Reached M3");
-
-    Arcranion::Vulkan::Device::Physical* physicalDevice;
-    try {
-        auto d = Arcranion::Vulkan::Device::Physical::bestDevice(&instance, &surface);
-        physicalDevice = &d;
-    } catch(std::runtime_error error) {
-        logger->critical("Could not pick best device: {}", error.what());
-        return -1;
-    }
+    Arcranion::Vulkan::Device::Physical* physicalDevice = Arcranion::Vulkan::Device::Physical::bestDevice(&instance, &surface).pointer();
     logger->info(
         "Found device: {} [{}] (Type {})",
         physicalDevice->properties().deviceName,
@@ -66,31 +58,41 @@ int main() {
         Arcranion::Vulkan::Device::Physical::deviceTypeAsString(physicalDevice->properties())
     );
 
-    Arcranion::Vulkan::Device::Logical* device;
-    try {
-        auto d = Arcranion::Vulkan::Device::Logical(physicalDevice);
-        device = &d;
-    } catch(std::runtime_error error) {
-        logger->critical("Failed to create logical devic: {}", error.what());
-    }
+    Arcranion::Vulkan::Device::Logical* device = Arcranion::Vulkan::Device::Logical(physicalDevice).pointer();
 
     device->create(&instance, &surface);
 
     auto swapchainInfo = physicalDevice->swapChainSupport(&surface);
-    
-    logger->info("Reached M4");
 
     auto swapchain = Arcranion::Vulkan::Device::Swapchain(swapchainInfo);
-    logger->info("Reached M5");
-    try {
-        swapchain.create(device, &window, &surface);
-        swapchain.updateImages();
-        swapchain.createImageViews();
 
-        logger->info("Created Swapchain!");
-    } catch(std::runtime_error error) {
-        logger->critical("Failed to create swapchain: {}", error.what());
-    }
+    swapchain.create(device, &window, &surface);
+    swapchain.updateImages();
+    swapchain.createImageViews();
+
+    logger->info("Loading shaders");
+    auto vertexShaderModule = Arcranion::Vulkan::ShaderModule(device, Arcranion::File::readText("D:\\Projects\\Arcranion\\test\\shaders\\compiled\\shader.vert.spv"));
+    auto fragmentShaderModule = Arcranion::Vulkan::ShaderModule(device, Arcranion::File::readText("D:\\Projects\\Arcranion\\test\\shaders\\compiled\\shader.frag.spv"));
+    vertexShaderModule.create();
+    fragmentShaderModule.create();
+
+    std::vector shaderStages = {
+        vertexShaderModule.createStageInfo(Arcranion::Vulkan::ShaderType::VERTEX, "main"),
+        fragmentShaderModule.createStageInfo(Arcranion::Vulkan::ShaderType::FRAGMENT, "main")
+    };
+
+    auto renderPass = Arcranion::Vulkan::RenderPass(&swapchain);
+    renderPass.create();
+
+    auto pipelineInfo = Arcranion::Vulkan::PipelineInformation {
+        .swapchain = &swapchain,
+        .renderPass = &renderPass,
+        .shaderStages = shaderStages
+    };
+
+    auto pipeline = Arcranion::Vulkan::Pipeline(pipelineInfo);
+    pipeline.createLayout();
+    pipeline.create();
 
     while (!window.shouldClose())
     {
@@ -99,6 +101,13 @@ int main() {
     
     // Cleanup
     try {
+        vertexShaderModule.destroy();
+        fragmentShaderModule.destroy();
+
+        pipeline.destroy();
+
+        renderPass.destroy();
+
         swapchain.destroy();
         device->destroy();
         instance.disposeDebugging();

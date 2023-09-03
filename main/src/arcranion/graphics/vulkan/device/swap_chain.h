@@ -26,17 +26,17 @@ namespace Arcranion::Vulkan::Device {
 
     class Swapchain {
     private:
-        Arcranion::Vulkan::Device::Logical* device;
-
         VkSwapchainKHR _handle;
         
         std::vector<VkImage> images;
 
-        VkFormat imageFormat;
-        VkExtent2D extent;
+        VkFormat _imageFormat;
+        VkExtent2D _extent;
 
         std::vector<VkImageView> imageViews;
     public:
+        Arcranion::Vulkan::Device::Logical* device;
+
         SwapchainInformation information;
 
         Swapchain(SwapchainInformation information);
@@ -54,6 +54,9 @@ namespace Arcranion::Vulkan::Device {
 
         void createImageViews();
         void destroyImageViews();
+
+        VkFormat imageFormat();
+        VkExtent2D extent();
     };
     
 }
