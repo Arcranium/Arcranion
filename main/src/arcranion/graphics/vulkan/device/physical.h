@@ -19,6 +19,7 @@ namespace Arcranion::Vulkan::Device {
     private:
         VkPhysicalDevice _handle = VK_NULL_HANDLE;
     public:
+        Physical() = default;
         Physical(VkPhysicalDevice handle);
 
         VkPhysicalDevice handle();

@@ -5,10 +5,6 @@ namespace Arcranion {
         this->_handle = handle;
     }
 
-    Window::~Window() {
-        destroy();
-    }
-
     GLFWwindow* Window::handle() {
         return this->_handle;
     }

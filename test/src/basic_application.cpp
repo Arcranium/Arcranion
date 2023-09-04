@@ -11,114 +11,208 @@
 #include "arcranion/graphics/vulkan/pipeline.h"
 #include "arcranion/util/file.h"
 
-VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
-    VkDebugUtilsMessageSeverityFlagBitsEXT           messageSeverity,
-    VkDebugUtilsMessageTypeFlagsEXT                  messageTypes,
-    const VkDebugUtilsMessengerCallbackDataEXT*      pCallbackData,
-    void*                                            pUserData
-) {
-    auto logger = spdlog::get("ValidationLayer");
-    logger->trace("{}", pCallbackData->pMessage);
+class BasicApplication {
+public:
+    logger_t logger{nullptr};
+    logger_t validationLayerLogger{nullptr};
 
-    return VK_FALSE;
-}
+    Arcranion::Window window;
+    Arcranion::Vulkan::Instance instance;
+    Arcranion::Vulkan::Surface surface;
+    Arcranion::Vulkan::Device::Physical physicalDevice;
+    Arcranion::Vulkan::Device::Logical device;
+    Arcranion::Vulkan::Device::Swapchain swapchain;
+
+    Arcranion::Vulkan::ShaderModule vertexShaderModule{};
+    Arcranion::Vulkan::ShaderModule fragmentShaderModule{};
+    
+    Arcranion::Vulkan::RenderPass renderPass{};
+    Arcranion::Vulkan::Pipeline graphicsPipeline{};
+
+    void run() {
+        init();
+        this->logger->info("Init phase finished, running the main loop");
+
+        loop();
+        this->logger->info("Loop finished, cleaning up");
+        
+        cleanup();
+    }
+
+    void init() {
+        // Init loggers
+        this->logger = spdlog::stdout_color_mt("BasicApplication");
+        this->validationLayerLogger = spdlog::stdout_color_mt("ValidationLayer");
+        this->validationLayerLogger->set_level(spdlog::level::trace);
+
+        Arcranion::GLFW::initialize();
+
+        try {
+            createWindow();
+            createInstance();
+            createSurface();
+            createDevice();
+            createSwapchain();
+            createShaderModules();
+            createRenderPass();
+            createGraphicsPipeline();
+        } catch(std::exception e) {
+            this->logger->critical("Failed to initialize: {}", e.what());
+        }
+    }
+
+    void loop() {
+        while (!window.shouldClose())
+        {
+            Arcranion::GLFW::pollEvents();
+        }
+    }
+
+    void cleanup() {
+        try {
+            this->logger->info("Destroying shader modules");
+            this->vertexShaderModule.destroy();
+            this->fragmentShaderModule.destroy();
+            
+            this->logger->info("Destroying graphics pipeline");
+            this->graphicsPipeline.destroy();
+            this->logger->info("Destroying render pass");
+            this->renderPass.destroy();
+            this->logger->info("Destroying swapchain");
+            this->swapchain.destroy();
+            this->logger->info("Destroying device");
+            this->device.destroy();
+            
+            this->logger->info("Destroying instance debugging");
+            this->instance.disposeDebugging();
+            this->logger->info("Destroying surface");
+            this->surface.destroy();
+            this->logger->info("Destroying instance");
+            this->instance.dispose();
+            this->logger->info("Destroying window");
+            this->window.destroy();
+
+            Arcranion::GLFW::terminate();
+        } catch(std::exception e) {
+            this->logger->critical("Failed to cleanup: {}", e.what());
+        }
+    }
+
+    static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
+        VkDebugUtilsMessageSeverityFlagBitsEXT           messageSeverity,
+        VkDebugUtilsMessageTypeFlagsEXT                  messageTypes,
+        const VkDebugUtilsMessengerCallbackDataEXT*      pCallbackData,
+        void*                                            pUserData
+    ) {
+        auto logger = spdlog::get("ValidationLayer");
+        logger->trace("{}", pCallbackData->pMessage);
+
+        return VK_FALSE;
+    }
+
+    void createWindow() {
+        this->logger->info("Creating window");
+
+        this->window = Arcranion::Window::create({
+            .width = 800,
+            .height = 600
+        });
+    }
+
+    void createInstance() {
+        this->logger->info("Creating instance");
+
+        Arcranion::ApplicationDescription applicationDescription{
+            .name = "BasicApplication",
+            .version = Arcranion::Version(1, 0, 0)
+        };
+
+        bool validationLayerSupported = Arcranion::Vulkan::Debugging::isValidationLayerSupported();
+        this->logger->info("Checking validation layer support: {}", validationLayerSupported);
+        
+        this->instance = Arcranion::Vulkan::Instance::create({
+            .useValidationLayer = validationLayerSupported,
+            .applicationDescription = applicationDescription,
+            .debugMessengerCallback = debugCallback,
+        });
+    }
+
+    void createSurface() {
+        this->logger->info("Creating surface");
+
+        this->surface = Arcranion::Vulkan::Surface(&this->instance, &this->window);
+        this->surface.create();
+    }
+
+    void createDevice() {
+        this->logger->info("Picking physical device");
+
+        this->physicalDevice = Arcranion::Vulkan::Device::Physical::bestDevice(&instance, &surface);
+        this->logger->info(
+            "Found device: {} [{}] (Type {})",
+            this->physicalDevice.properties().deviceName,
+            this->physicalDevice.properties().deviceID,
+            Arcranion::Vulkan::Device::Physical::deviceTypeAsString(this->physicalDevice.properties())
+        );
+
+        this->logger->info("Creating device");
+
+        this->device = Arcranion::Vulkan::Device::Logical(&physicalDevice);
+        this->device.create(&instance, &surface);
+    }
+
+    void createSwapchain() {
+        this->logger->info("Creating swapchain");
+
+        auto swapchainInfo = this->physicalDevice.swapChainSupport(&surface);
+        
+        this->swapchain = Arcranion::Vulkan::Device::Swapchain(swapchainInfo);
+
+        swapchain.create(&this->device, &this->window, &this->surface);
+        swapchain.updateImages();
+        swapchain.createImageViews();
+    }
+
+    void createShaderModules() {
+        this->logger->info("Loading shaders");
+
+        this->vertexShaderModule = Arcranion::Vulkan::ShaderModule(&this->device, Arcranion::File::readText("D:\\Projects\\Arcranion\\test\\shaders\\compiled\\shader.vert.spv"));
+        this->fragmentShaderModule = Arcranion::Vulkan::ShaderModule(&this->device, Arcranion::File::readText("D:\\Projects\\Arcranion\\test\\shaders\\compiled\\shader.frag.spv"));
+        
+        this->logger->info("Creating shader modules");
+
+        this->vertexShaderModule.create();
+        this->fragmentShaderModule.create();
+    }
+
+    void createRenderPass() {
+        this->logger->info("Creating render pass");
+
+        this->renderPass = Arcranion::Vulkan::RenderPass(&this->swapchain);
+        this->renderPass.create();
+    }
+
+    void createGraphicsPipeline() {
+        this->logger->info("Creating graphics pipeline");
+
+        std::vector shaderStages = {
+            this->vertexShaderModule.createStageInfo(Arcranion::Vulkan::ShaderType::VERTEX, "main"),
+            this->fragmentShaderModule.createStageInfo(Arcranion::Vulkan::ShaderType::FRAGMENT, "main")
+        };
+
+        auto pipelineInfo = Arcranion::Vulkan::PipelineInformation {
+            .swapchain = &swapchain,
+            .renderPass = &renderPass,
+            .shaderStages = shaderStages
+        };
+
+        this->graphicsPipeline = Arcranion::Vulkan::Pipeline(pipelineInfo);
+        this->graphicsPipeline.createLayout();
+        this->graphicsPipeline.create();
+    }
+};
 
 int main() {
-    logger_t logger = spdlog::stdout_color_mt("BasicApplication");
-    spdlog::stdout_color_mt("ValidationLayer")->set_level(spdlog::level::trace);
-
-    Arcranion::GLFW::initialize();
-
-    auto window = Arcranion::Window::create({
-        .width = 100,
-        .height = 100
-    });
-
-    Arcranion::ApplicationDescription applicationDescription{
-        .name = "BasicApplication",
-        .version = Arcranion::Version(1, 0, 0)
-    };
-
-    logger->info("Checking validation layer support: {}", Arcranion::Vulkan::Debugging::isValidationLayerSupported());
-
-    auto instance = Arcranion::Vulkan::Instance::create({
-        .useValidationLayer = true,
-        .applicationDescription = applicationDescription,
-        .debugMessengerCallback = debugCallback,
-    });
-
-    auto surface = Arcranion::Vulkan::Surface(&instance, &window);
-    surface.create();
-
-    Arcranion::Vulkan::Device::Physical* physicalDevice = Arcranion::Vulkan::Device::Physical::bestDevice(&instance, &surface).pointer();
-    logger->info(
-        "Found device: {} [{}] (Type {})",
-        physicalDevice->properties().deviceName,
-        physicalDevice->properties().deviceID,
-        Arcranion::Vulkan::Device::Physical::deviceTypeAsString(physicalDevice->properties())
-    );
-
-    Arcranion::Vulkan::Device::Logical* device = Arcranion::Vulkan::Device::Logical(physicalDevice).pointer();
-
-    device->create(&instance, &surface);
-
-    auto swapchainInfo = physicalDevice->swapChainSupport(&surface);
-
-    auto swapchain = Arcranion::Vulkan::Device::Swapchain(swapchainInfo);
-
-    swapchain.create(device, &window, &surface);
-    swapchain.updateImages();
-    swapchain.createImageViews();
-
-    logger->info("Loading shaders");
-    auto vertexShaderModule = Arcranion::Vulkan::ShaderModule(device, Arcranion::File::readText("D:\\Projects\\Arcranion\\test\\shaders\\compiled\\shader.vert.spv"));
-    auto fragmentShaderModule = Arcranion::Vulkan::ShaderModule(device, Arcranion::File::readText("D:\\Projects\\Arcranion\\test\\shaders\\compiled\\shader.frag.spv"));
-    vertexShaderModule.create();
-    fragmentShaderModule.create();
-
-    std::vector shaderStages = {
-        vertexShaderModule.createStageInfo(Arcranion::Vulkan::ShaderType::VERTEX, "main"),
-        fragmentShaderModule.createStageInfo(Arcranion::Vulkan::ShaderType::FRAGMENT, "main")
-    };
-
-    auto renderPass = Arcranion::Vulkan::RenderPass(&swapchain);
-    renderPass.create();
-
-    auto pipelineInfo = Arcranion::Vulkan::PipelineInformation {
-        .swapchain = &swapchain,
-        .renderPass = &renderPass,
-        .shaderStages = shaderStages
-    };
-
-    auto pipeline = Arcranion::Vulkan::Pipeline(pipelineInfo);
-    pipeline.createLayout();
-    pipeline.create();
-
-    while (!window.shouldClose())
-    {
-        Arcranion::GLFW::pollEvents();
-    }
-    
-    // Cleanup
-    try {
-        vertexShaderModule.destroy();
-        fragmentShaderModule.destroy();
-
-        pipeline.destroy();
-
-        renderPass.destroy();
-
-        swapchain.destroy();
-        device->destroy();
-        instance.disposeDebugging();
-        surface.destroy();
-        instance.dispose();
-        window.destroy();
-    } catch(std::exception e) {
-        logger->critical("Failed to cleanup: {}", e.what());
-    }
-
-    Arcranion::GLFW::terminate();
-
+    BasicApplication().run();
     return 0;
 }

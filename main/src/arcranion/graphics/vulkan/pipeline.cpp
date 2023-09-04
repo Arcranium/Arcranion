@@ -3,6 +3,7 @@
 namespace Arcranion::Vulkan {
     Pipeline::Pipeline(PipelineInformation information) {
         this->information = information;
+        this->logger = spdlog::stdout_color_mt("Vulkan/GraphicsPipeline");
     }
 
     void Pipeline::createLayout() {

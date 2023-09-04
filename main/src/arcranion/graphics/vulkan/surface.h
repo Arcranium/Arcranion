@@ -15,8 +15,9 @@ namespace Arcranion::Vulkan {
         Arcranion::Vulkan::Instance* instance = nullptr;
         Arcranion::Window* window = nullptr;
 
-        VkSurfaceKHR _handle;
+        VkSurfaceKHR _handle = VK_NULL_HANDLE;
     public:
+        Surface() = default;
         Surface(Arcranion::Vulkan::Instance* instance, Arcranion::Window* window);
 
         VkSurfaceKHR handle();

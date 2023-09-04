@@ -15,9 +15,9 @@ namespace Arcranion::Vulkan::Device {
 namespace Arcranion::Vulkan::Device {
     class SwapchainInformation {
     public:
-        VkSurfaceCapabilitiesKHR capabilities;
-        std::vector<VkSurfaceFormatKHR> formats;
-        std::vector<VkPresentModeKHR> presentModes;
+        VkSurfaceCapabilitiesKHR capabilities{};
+        std::vector<VkSurfaceFormatKHR> formats{};
+        std::vector<VkPresentModeKHR> presentModes{};
 
         VkSurfaceFormatKHR chooseSurfaceFormat();
         VkPresentModeKHR choosePresentMode();
@@ -26,19 +26,20 @@ namespace Arcranion::Vulkan::Device {
 
     class Swapchain {
     private:
-        VkSwapchainKHR _handle;
+        VkSwapchainKHR _handle = VK_NULL_HANDLE;
         
-        std::vector<VkImage> images;
+        std::vector<VkImage> images{};
 
-        VkFormat _imageFormat;
-        VkExtent2D _extent;
+        VkFormat _imageFormat = VK_FORMAT_UNDEFINED;
+        VkExtent2D _extent{};
 
-        std::vector<VkImageView> imageViews;
+        std::vector<VkImageView> imageViews{};
     public:
-        Arcranion::Vulkan::Device::Logical* device;
+        Arcranion::Vulkan::Device::Logical* device = nullptr;
 
-        SwapchainInformation information;
+        SwapchainInformation information{};
 
+        Swapchain() = default;
         Swapchain(SwapchainInformation information);
 
         VkSwapchainKHR handle();

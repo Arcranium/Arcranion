@@ -8,11 +8,12 @@
 namespace Arcranion::Vulkan {
     class ShaderModule {
     private:
-        Device::Logical* device;
-        VkShaderModule _handle;
+        Device::Logical* device = nullptr;
+        VkShaderModule _handle = VK_NULL_HANDLE;
 
-        std::vector<char> code;
+        std::vector<char> code{};
     public:
+        ShaderModule() = default;
         ShaderModule(Device::Logical* device, std::vector<char> code);
 
         void create();

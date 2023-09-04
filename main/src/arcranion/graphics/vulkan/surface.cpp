@@ -11,8 +11,9 @@ namespace Arcranion::Vulkan {
     }
     
     void Surface::create() {
-        if(glfwCreateWindowSurface(instance->handle(), window->handle(), nullptr, &this->_handle) != VK_SUCCESS) {
-            throw std::runtime_error("Failed to create window surface!");
+        auto result = glfwCreateWindowSurface(instance->handle(), window->handle(), nullptr, &this->_handle);
+        if(result != VK_SUCCESS) {
+            throw std::runtime_error(fmt::format("Failed to create window surface: {}", result));
         }
     }
 

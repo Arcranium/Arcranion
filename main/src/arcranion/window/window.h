@@ -19,8 +19,8 @@ namespace Arcranion {
         GLFWwindow* _handle;
 
     public:
+        Window() = default;
         Window(GLFWwindow* handle);
-        ~Window();
 
         GLFWwindow* handle();
 

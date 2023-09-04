@@ -22,11 +22,12 @@ namespace Arcranion::Vulkan {
 
     class Instance {
     private:
-        VkInstance instance;
+        VkInstance instance = VK_NULL_HANDLE;
         VkDebugUtilsMessengerEXT debugMessenger = nullptr;
     public:
-        InstanceConfiguration* configuration;
+        InstanceConfiguration* configuration = nullptr;
         
+        Instance() = default;
         Instance(VkInstance instance, InstanceConfiguration* configuration);
 
         VkInstance handle();

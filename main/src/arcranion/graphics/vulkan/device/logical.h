@@ -10,12 +10,13 @@ namespace Arcranion::Vulkan::Device {
 namespace Arcranion::Vulkan::Device {
     class Logical {
     private:
-        VkDevice _handle;
-        VkQueue graphicsQueue;
-        VkQueue presentQueue;
+        VkDevice _handle = VK_NULL_HANDLE;
+        VkQueue graphicsQueue = VK_NULL_HANDLE;
+        VkQueue presentQueue = VK_NULL_HANDLE;
     public:
         Arcranion::Vulkan::Device::Physical* physicalDevice;
 
+        Logical() = default;
         Logical(Arcranion::Vulkan::Device::Physical* device);
 
         VkDevice handle();

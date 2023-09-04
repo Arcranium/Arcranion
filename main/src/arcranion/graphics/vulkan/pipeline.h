@@ -8,19 +8,22 @@
 
 namespace Arcranion::Vulkan {
     struct PipelineInformation {
-        Device::Swapchain* swapchain;
-        RenderPass* renderPass;
+        Device::Swapchain* swapchain = nullptr;
+        RenderPass* renderPass = nullptr;
 
-        std::vector<VkPipelineShaderStageCreateInfo> shaderStages;
+        std::vector<VkPipelineShaderStageCreateInfo> shaderStages{};
     };
 
     class Pipeline {
     private:
-        PipelineInformation information;
+        logger_t logger;
 
-        VkPipelineLayout _layoutHandle;
-        VkPipeline _handle;
+        PipelineInformation information{};
+
+        VkPipelineLayout _layoutHandle = VK_NULL_HANDLE;
+        VkPipeline _handle = VK_NULL_HANDLE;
     public:
+        Pipeline() = default;
         explicit Pipeline(PipelineInformation information);
 
         void createLayout();
