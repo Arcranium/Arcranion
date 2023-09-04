@@ -9,6 +9,7 @@
 #include "arcranion/graphics/vulkan/shader/shader_module.h"
 #include "arcranion/graphics/vulkan/render_pass.h"
 #include "arcranion/graphics/vulkan/pipeline.h"
+#include "arcranion/graphics/vulkan/framebuffer.h"
 #include "arcranion/util/file.h"
 
 class BasicApplication {
@@ -28,6 +29,7 @@ public:
     
     Arcranion::Vulkan::RenderPass renderPass{};
     Arcranion::Vulkan::Pipeline graphicsPipeline{};
+    Arcranion::Vulkan::Framebuffers framebuffers{};
 
     void run() {
         init();
@@ -56,6 +58,7 @@ public:
             createShaderModules();
             createRenderPass();
             createGraphicsPipeline();
+            createFramebuffers();
         } catch(std::exception e) {
             this->logger->critical("Failed to initialize: {}", e.what());
         }
@@ -70,6 +73,9 @@ public:
 
     void cleanup() {
         try {
+            this->logger->info("Destroying framebuffers");
+            this->framebuffers.destroyAll();
+
             this->logger->info("Destroying shader modules");
             this->vertexShaderModule.destroy();
             this->fragmentShaderModule.destroy();
@@ -209,6 +215,13 @@ public:
         this->graphicsPipeline = Arcranion::Vulkan::Pipeline(pipelineInfo);
         this->graphicsPipeline.createLayout();
         this->graphicsPipeline.create();
+    }
+
+    void createFramebuffers() {
+        this->logger->info("Creating framebuffers");
+
+        this->framebuffers = Arcranion::Vulkan::Framebuffers(&this->renderPass);
+        this->framebuffers.createAll();
     }
 };
 

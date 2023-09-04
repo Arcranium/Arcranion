@@ -33,8 +33,9 @@ namespace Arcranion::Vulkan::Device {
         VkFormat _imageFormat = VK_FORMAT_UNDEFINED;
         VkExtent2D _extent{};
 
-        std::vector<VkImageView> imageViews{};
     public:
+        std::vector<VkImageView> imageViews{};
+        
         Arcranion::Vulkan::Device::Logical* device = nullptr;
 
         SwapchainInformation information{};

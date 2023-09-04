@@ -8,8 +8,9 @@ namespace Arcranion::Vulkan {
     class RenderPass {
     private:
         VkRenderPass _handle = VK_NULL_HANDLE;
-        Device::Swapchain* swapchain = nullptr;
     public:
+        Device::Swapchain* swapchain = nullptr;
+        
         RenderPass() = default;
         RenderPass(Device::Swapchain* swapchain);
 
